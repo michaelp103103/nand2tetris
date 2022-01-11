@@ -1,0 +1,107 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in 
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM==0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time step. If reset==1 then the 
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Put your code here:
+    
+    	Not(in= instruction[15],out= notOpcode);
+
+	//------------------ MUX1 -------------------
+	//IF opcode==0, send A instruction to A Register. ELSE, send ALU output to A Register
+	Mux16(a= outALU,b= instruction,sel= notOpcode,out= muxToARegister);
+
+	//----------------- A REGISTER -------------
+	//IF (opcode AND d1) OR !opcode, THEN write to A Register
+	And(a= instruction[15],b= instruction[5],out= opcodeAndD1);
+	Or(a= opcodeAndD1,b= notOpcode,out= controlARegister);
+	
+	ARegister(in= muxToARegister,load= controlARegister,out= AtoMux2, out[0..14]= addressM, out= AReg);
+
+	//----------------- MUX2 -------------------
+	//IF instruction[12]==0, A is operand. ELSE, M is operand
+	Mux16(a= AtoMux2,b= inM,sel= instruction[12],out= muxToALU);
+
+	//----------------- D REGISTER -------------
+	//IF (d2 AND opcode), THEN write to D Register
+	And(a= instruction[4],b= instruction[15],out= d2AndOpcode);
+	DRegister(in= outALU,load= d2AndOpcode,out= outD);
+
+	//----------------- ALU --------------------
+	ALU(x= outD,
+	    y= muxToALU,
+	    zx= instruction[11],
+	    nx= instruction[10],
+	    zy= instruction[9],
+	    ny= instruction[8],
+	    f= instruction[7],
+	    no= instruction[6],
+	    out= outM,
+	    out= outALU,
+	    zr= zr,
+	    ng= ng);
+
+	//----------------- writeM -----------------
+	//IF (d3 AND opcode), THEN assert writeM bit
+	And(a= instruction[3],b= instruction[15],out= writeM);
+
+	//----------------- PC ---------------------
+	Not(in= zr,out= notZr);
+	Not(in= ng,out= notNg);
+
+	And(a= notZr,b= notNg,out= notZrAndnotNg);
+	Or(a= zr,b= notNg,out= zrOrnotNg);
+	Or(a= zr,b= ng,out= zrOrNg);
+
+	Mux8Way16(a[0]= false,	//mux1
+		  b[0]= notZrAndnotNg,
+		  c[0]= zr,
+		  d[0]= zrOrnotNg,
+		  e[0]= ng,
+		  f[0]= notZr,
+		  g[0]= zrOrNg,
+		  h[0]= true,
+		  sel= instruction[0..2],
+		  out[0]= mux1Out);
+
+	//IF opcode == 0 (A instruction), loadBit <- 0
+	And(a= mux1Out, b= instruction[15], out= loadBit);
+
+	PC(in= AReg,load= loadBit,inc= true,reset= reset,out[0..14]= pc);
+}	
