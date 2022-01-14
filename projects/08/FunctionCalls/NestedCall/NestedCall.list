@@ -1,0 +1,521 @@
+	
+	// function Sys.init 0 
+	(Sys.init)
+0	@0
+1	D=A
+	(L0)
+2	@L1
+3	D;JEQ
+4	@SP
+5	M=M+1
+6	A=M-1
+7	M=0
+8	D=D-1
+9	@L0
+10	0;JMP
+	(L1)
+	
+	// push constant 4000 
+11	@4000
+12	D=A
+13	@SP
+14	M=M+1
+15	A=M-1
+16	M=D
+	
+	// pop pointer 0 
+17	@SP
+18	AM=M-1
+19	D=M
+20	@THIS
+21	M=D
+	
+	// push constant 5000 
+22	@5000
+23	D=A
+24	@SP
+25	M=M+1
+26	A=M-1
+27	M=D
+	
+	// pop pointer 1 
+28	@SP
+29	AM=M-1
+30	D=M
+31	@THAT
+32	M=D
+	
+	// call Sys.main 0 
+33	@Sys.init$ret.0
+34	D=A
+35	@SP
+36	M=M+1
+37	A=M-1
+38	M=D
+39	@LCL
+40	D=M
+41	@SP
+42	M=M+1
+43	A=M-1
+44	M=D
+45	@ARG
+46	D=M
+47	@SP
+48	M=M+1
+49	A=M-1
+50	M=D
+51	@THIS
+52	D=M
+53	@SP
+54	M=M+1
+55	A=M-1
+56	M=D
+57	@THAT
+58	D=M
+59	@SP
+60	M=M+1
+61	A=M-1
+62	M=D
+63	@5
+64	D=A
+65	@SP
+66	D=M-D
+67	@ARG
+68	M=D
+69	@SP
+70	D=M
+71	@LCL
+72	M=D
+73	@Sys.main
+74	0;JMP
+	(Sys.init$ret.0)
+	
+	// pop temp 1 
+75	@SP
+76	AM=M-1
+77	D=M
+78	@6
+79	M=D
+	
+	// label LOOP 
+	(Sys.init$LOOP)
+	
+	// goto LOOP 
+80	@Sys.init$LOOP
+81	0;JMP
+	
+	// function Sys.main 5 
+	(Sys.main)
+82	@5
+83	D=A
+	(L2)
+84	@L3
+85	D;JEQ
+86	@SP
+87	M=M+1
+88	A=M-1
+89	M=0
+90	D=D-1
+91	@L2
+92	0;JMP
+	(L3)
+	
+	// push constant 4001 
+93	@4001
+94	D=A
+95	@SP
+96	M=M+1
+97	A=M-1
+98	M=D
+	
+	// pop pointer 0 
+99	@SP
+100	AM=M-1
+101	D=M
+102	@THIS
+103	M=D
+	
+	// push constant 5001 
+104	@5001
+105	D=A
+106	@SP
+107	M=M+1
+108	A=M-1
+109	M=D
+	
+	// pop pointer 1 
+110	@SP
+111	AM=M-1
+112	D=M
+113	@THAT
+114	M=D
+	
+	// push constant 200 
+115	@200
+116	D=A
+117	@SP
+118	M=M+1
+119	A=M-1
+120	M=D
+	
+	// pop local 1 
+121	@LCL
+122	D=M
+123	@1
+124	D=D+A
+125	@SP
+126	A=M
+127	M=D
+128	@SP
+129	AM=M-1
+130	D=M
+131	A=A+1
+132	A=M
+133	M=D
+	
+	// push constant 40 
+134	@40
+135	D=A
+136	@SP
+137	M=M+1
+138	A=M-1
+139	M=D
+	
+	// pop local 2 
+140	@LCL
+141	D=M
+142	@2
+143	D=D+A
+144	@SP
+145	A=M
+146	M=D
+147	@SP
+148	AM=M-1
+149	D=M
+150	A=A+1
+151	A=M
+152	M=D
+	
+	// push constant 6 
+153	@6
+154	D=A
+155	@SP
+156	M=M+1
+157	A=M-1
+158	M=D
+	
+	// pop local 3 
+159	@LCL
+160	D=M
+161	@3
+162	D=D+A
+163	@SP
+164	A=M
+165	M=D
+166	@SP
+167	AM=M-1
+168	D=M
+169	A=A+1
+170	A=M
+171	M=D
+	
+	// push constant 123 
+172	@123
+173	D=A
+174	@SP
+175	M=M+1
+176	A=M-1
+177	M=D
+	
+	// call Sys.add12 1 
+178	@Sys.main$ret.0
+179	D=A
+180	@SP
+181	M=M+1
+182	A=M-1
+183	M=D
+184	@LCL
+185	D=M
+186	@SP
+187	M=M+1
+188	A=M-1
+189	M=D
+190	@ARG
+191	D=M
+192	@SP
+193	M=M+1
+194	A=M-1
+195	M=D
+196	@THIS
+197	D=M
+198	@SP
+199	M=M+1
+200	A=M-1
+201	M=D
+202	@THAT
+203	D=M
+204	@SP
+205	M=M+1
+206	A=M-1
+207	M=D
+208	@4
+209	D=A
+210	@SP
+211	D=M-D
+212	@ARG
+213	M=D
+214	@SP
+215	D=M
+216	@LCL
+217	M=D
+218	@Sys.add12
+219	0;JMP
+	(Sys.main$ret.0)
+	
+	// pop temp 0 
+220	@SP
+221	AM=M-1
+222	D=M
+223	@5
+224	M=D
+	
+	// push local 0 
+225	@LCL
+226	D=M
+227	@0
+228	A=D+A
+229	D=M
+230	@SP
+231	M=M+1
+232	A=M-1
+233	M=D
+	
+	// push local 1 
+234	@LCL
+235	D=M
+236	@1
+237	A=D+A
+238	D=M
+239	@SP
+240	M=M+1
+241	A=M-1
+242	M=D
+	
+	// push local 2 
+243	@LCL
+244	D=M
+245	@2
+246	A=D+A
+247	D=M
+248	@SP
+249	M=M+1
+250	A=M-1
+251	M=D
+	
+	// push local 3 
+252	@LCL
+253	D=M
+254	@3
+255	A=D+A
+256	D=M
+257	@SP
+258	M=M+1
+259	A=M-1
+260	M=D
+	
+	// push local 4 
+261	@LCL
+262	D=M
+263	@4
+264	A=D+A
+265	D=M
+266	@SP
+267	M=M+1
+268	A=M-1
+269	M=D
+	
+	//add
+270	@SP
+271	AM=M-1
+272	D=M
+273	A=A-1
+274	M=D+M
+	
+	//add
+275	@SP
+276	AM=M-1
+277	D=M
+278	A=A-1
+279	M=D+M
+	
+	//add
+280	@SP
+281	AM=M-1
+282	D=M
+283	A=A-1
+284	M=D+M
+	
+	//add
+285	@SP
+286	AM=M-1
+287	D=M
+288	A=A-1
+289	M=D+M
+	
+	// return
+290	@LCL
+291	D=M
+292	@R13
+293	M=D
+294	@5
+295	A=D-A
+296	D=M
+297	@R14
+298	M=D
+299	@SP
+300	AM=M-1
+301	D=M
+302	@ARG
+303	A=M
+304	M=D
+305	D=A+1
+306	@SP
+307	M=D
+308	@R13
+309	AM=M-1
+310	D=M
+311	@THAT
+312	M=D
+313	@R13
+314	AM=M-1
+315	D=M
+316	@THIS
+317	M=D
+318	@R13
+319	AM=M-1
+320	D=M
+321	@ARG
+322	M=D
+323	@R13
+324	AM=M-1
+325	D=M
+326	@LCL
+327	M=D
+328	@R14
+329	A=M
+330	0;JMP
+	
+	// function Sys.add12 0 
+	(Sys.add12)
+331	@0
+332	D=A
+	(L4)
+333	@L5
+334	D;JEQ
+335	@SP
+336	M=M+1
+337	A=M-1
+338	M=0
+339	D=D-1
+340	@L4
+341	0;JMP
+	(L5)
+	
+	// push constant 4002 
+342	@4002
+343	D=A
+344	@SP
+345	M=M+1
+346	A=M-1
+347	M=D
+	
+	// pop pointer 0 
+348	@SP
+349	AM=M-1
+350	D=M
+351	@THIS
+352	M=D
+	
+	// push constant 5002 
+353	@5002
+354	D=A
+355	@SP
+356	M=M+1
+357	A=M-1
+358	M=D
+	
+	// pop pointer 1 
+359	@SP
+360	AM=M-1
+361	D=M
+362	@THAT
+363	M=D
+	
+	// push argument 0 
+364	@ARG
+365	D=M
+366	@0
+367	A=D+A
+368	D=M
+369	@SP
+370	M=M+1
+371	A=M-1
+372	M=D
+	
+	// push constant 12 
+373	@12
+374	D=A
+375	@SP
+376	M=M+1
+377	A=M-1
+378	M=D
+	
+	//add
+379	@SP
+380	AM=M-1
+381	D=M
+382	A=A-1
+383	M=D+M
+	
+	// return
+384	@LCL
+385	D=M
+386	@R13
+387	M=D
+388	@5
+389	A=D-A
+390	D=M
+391	@R14
+392	M=D
+393	@SP
+394	AM=M-1
+395	D=M
+396	@ARG
+397	A=M
+398	M=D
+399	D=A+1
+400	@SP
+401	M=D
+402	@R13
+403	AM=M-1
+404	D=M
+405	@THAT
+406	M=D
+407	@R13
+408	AM=M-1
+409	D=M
+410	@THIS
+411	M=D
+412	@R13
+413	AM=M-1
+414	D=M
+415	@ARG
+416	M=D
+417	@R13
+418	AM=M-1
+419	D=M
+420	@LCL
+421	M=D
+422	@R14
+423	A=M
+424	0;JMP

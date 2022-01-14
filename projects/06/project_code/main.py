@@ -1,104 +1,19 @@
-from code import *
-from parser import *
-from symbol_table import *
-import sys
+"""
+Author: Michael Piskozub
+Date Created: 7/12/2021
 
-def decToBin(num):
-  res = list("0" * 15)
-  ind = len(res)-1
+The Main module of the assembler built for project 6 of the Nand to 
+Tetris MOOC by The Hebrew University of Jerusalem.
 
-  while num > 0:
-    remainder = num % 2
-    res[ind] = str(remainder)
-    ind -= 1
-    num = num // 2
-  
-  return "".join(res)
+The Main module initializes the I/O files and drives the process of 
+translating symbolic hack assembly code to binary.
 
-def noSymbolAssemble(filepath):
-  parser = Parser(filepath)
-  code = Code()
-  k = filepath.rfind(".")
-  filename = filepath[:k] + ".hack"
+See nand2tetris.org/project06 for the project description.
+"""
 
-  with open(filename, "w") as f:
-    while (parser.hasMoreCommands()):
-      line = ""
-      parser.advance()
-      commType = parser.commandType()
+import sys #standard lib
 
-      if commType == parser.aCom:
-        addr = decToBin(int(parser.symbol()))
-        line = "0" + addr
-      elif commType == parser.cCom:
-        comp = code.comp(parser.comp())
-        dest = code.dest(parser.dest())
-        jump = code.jump(parser.jump())
-        line = "111" + comp + dest + jump
+from helpers import * #local
 
-      line = line + "\n"
-      f.write(line)
-
-def assemble(filepath):
-  parser = Parser(filepath)
-  code = Code()
-  symTable = SymbolTable()
-  memCnt = 16
-  instCnt = 0
-  k = filepath.rfind(".")
-  filename = filepath[:k] + ".hack"
-
-  #first pass
-  while(parser.hasMoreCommands()):
-    parser.advance()
-    commType = parser.commandType()
-    symbol = parser.symbol()
-
-    if (commType == parser.lCom) and parser.hasMoreCommands():
-      symTable.addEntry(symbol, instCnt)
-
-    if commType != parser.lCom:
-      instCnt += 1
-
-  #second pass
-  parser = Parser(filepath)
-
-  with open(filename, "w") as f:
-    while (parser.hasMoreCommands()):
-      line = ""
-      parser.advance()
-      commType = parser.commandType()
-
-      #A command
-      if commType == parser.aCom:
-        num = 0
-        symbol = parser.symbol()
-
-        if symbol.isdecimal():
-          num = int(symbol)
-        elif symTable.contains(symbol):
-          num = symTable.GetAddress(symbol)
-        else:
-          num = memCnt
-          symTable.addEntry(symbol, memCnt)
-          memCnt += 1
-
-        addr = decToBin(num)
-        line = "0" + addr
-      
-      #C Command
-      elif commType == parser.cCom:
-        comp = code.comp(parser.comp())
-        dest = code.dest(parser.dest())
-        jump = code.jump(parser.jump())
-        line = "111" + comp + dest + jump
-      
-      #L command
-      else:
-        continue
-
-      line = line + "\n"
-      f.write(line)
-
-assemble(sys.argv[1])
-#noSymbolAssemble(sys.argv[1])
+assemble(sys.argv[1]) #run assembler on command line arg
+#genListing(sys.argv[1]) #run listing program on comm line arg

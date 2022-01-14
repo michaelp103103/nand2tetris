@@ -1,9 +1,10 @@
 import re
 
 class Parser():
-  aCom = "A_Command"
-  cCom = "C_Command"
-  lCom = "L_Command"
+  aCom = 0
+  cCom = 1
+  lCom = 2
+  noCom = 3
 
   #remove whitespace
   def removeWS(self, str):
@@ -19,7 +20,7 @@ class Parser():
     self.ind = 0
     self.mx = len(self.lines)
     self.line = ""
-    
+
   #are there more commands in input?
   def hasMoreCommands(self):
     i = self.ind
@@ -85,3 +86,29 @@ class Parser():
       return ""
     s = re.split('/',s)
     return s[0]
+
+  #advance to the next line
+  def advanceListing(self):
+    self.line = self.lines[self.ind]
+    self.ind += 1
+  
+  #return the type of the current command
+  def commTypeListing(self):
+    line = self.line.lstrip()
+    if line != "":
+      if line[0] == "@":
+        return self.aCom
+      if line[0] == "(":
+        return self.lCom
+      if line[0] in ["!", "A", "M", "D", "0", "-", "1"]:
+        return self.cCom
+      return self.noCom
+    return self.noCom
+
+  #does the file have more lines?
+  def hasMoreLines(self):
+    return self.ind <= (self.mx-1)
+
+  #return the unmodified source line
+  def sourceLine(self):
+    return self.line
