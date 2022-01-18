@@ -1,42 +1,56 @@
 """
 Author: Michael Piskozub
-Date Created: 7/12/2021
+Date Created: 7/20/2021
 
-The Parser module of the VM translator was built for project 7 of the Nand to Tetris MOOC by The Hebrew University of Jerusalem.
+The Parser module of the VM translator built for project 8 of the 
+Nand to Tetris MOOC by The Hebrew University of Jerusalem.
 
-The Parser module reads each line of the input file, parses each line into its lexical elements, and provides information about the command type as well as the command arguments for each line.
+The Parser module from project 7 was extended so that the Parser
+module could handle 'function', 'call', 'return', 'label', 'goto',
+and 'if' commands. 
 
-See nand2tetris.org/project07 for the project description.
+The Parser module handles the parsing of a single .vm file. It 
+removes whitespace/comments and parses each VM command into its 
+lexical elements.
+
+See nand2tetris.org/project08 for the project description.
 """
 
 class Parser():
 
-  cArithmetic = 1 #each command type has an id
-  cPush = 2
-  cPop = 3
-  cLabel = 4
-  cGoto = 5
-  cIf = 6
-  cFunction = 7
-  cReturn = 8
-  cCall = 9
+  cArithmetic = 0 #command type id
+  cPush = 1
+  cPop = 2
+  cLabel = 3
+  cGoto = 4
+  cIf = 5
+  cFunction = 6
+  cReturn = 7
+  cCall = 8
 
-  arithCommands = [ #valid commands
-    "add",
-    "sub",
-    "neg",
-    "eq",
-    "gt",
-    "lt",
-    "and",
-    "or",
-    "not"
-  ]
-  pushCom = "push"
-  popCom = "pop"
+  argToComType = { #maps command mnemonic to id
+    "add": cArithmetic,
+    "sub": cArithmetic,
+    "neg": cArithmetic,
+    "eq": cArithmetic,
+    "gt": cArithmetic,
+    "lt": cArithmetic,
+    "and": cArithmetic,
+    "or": cArithmetic,
+    "not": cArithmetic,
+    "push": cPush,
+    "pop": cPop,
+    "if-goto": cIf,
+    "goto": cGoto,
+    "label": cLabel,
+    "call": cCall,
+    "function": cFunction,
+    "return": cReturn
+  }
 
   def __removeWS(self, str):
-    """Remove whitespace from str and return a list containing the lexical elements of the line, or an empty list if there are none.
+    """
+    Remove whitespace from str and return a list containing the lexical elements of the line, or an empty list if there are none.
 
     Ex. 
     If str = "push local 0", return ["push", "local", "0"]
@@ -45,7 +59,7 @@ class Parser():
     :return: a list containing the lexical elements of the line or empty list if none present
     :rtype: list
     """
-    
+
     #remove comments
     str = str.split("//")[0]
     #remove leading/trailing whitespace
@@ -63,9 +77,9 @@ class Parser():
     """
 
     file = open(filepath, "r") #open input file
-    self.lines = file.readlines() #list of all lines in input file
-    self.ind = 0 #index of current line
-    self.mx = len(self.lines) #number of lines in input file
+    self.lines = file.readlines() #list all lines in input
+    self.ind = 0 #line index
+    self.mx = len(self.lines) #number of lines in input
     self.line = [] #current line
 
   def hasMoreCommands(self):
@@ -75,13 +89,13 @@ class Parser():
     :return: true if more commands present, false otherwise
     :rtype: bool
     """
-    
-    i = self.ind  #index of current line
+
+    i = self.ind #index of current line
     curr = [] #current line
 
-    while curr == []: 
-      if i <= (self.mx-1): #if there are more lines, check next line
-        curr = self.__removeWS(self.lines[i]) #remove whitespace and comments
+    while curr == []:
+      if i <= (self.mx-1): #check if more lines exist
+        curr = self.__removeWS(self.lines[i]) #remove whitespace/comments
         i += 1
       else: #otherwise, no more commands
         return False
@@ -98,7 +112,7 @@ class Parser():
     self.line = [] #current line
 
     while self.line == []: #loop while current line doesn't contain command
-      self.line = self.__removeWS(self.lines[self.ind]) #remove whitespace and comments
+      self.line = self.__removeWS(self.lines[self.ind]) #remove whitespace/comments
       self.ind += 1 #go to next line
     
     return #if self.line != [], then command has been found
@@ -110,17 +124,8 @@ class Parser():
     :return: the command type id
     :rtype: int
     """
-    if self.line[0] in self.arithCommands: #check if arithmetic/logical command
-      return self.cArithmetic
 
-    elif self.line[0] == self.pushCom: #check if push command
-      return self.cPush
-
-    elif self.line[0] == self.popCom: #check if pop command
-      return self.cPop
-
-    else:
-      return
+    return self.argToComType[self.line[0]]
 
   def arg1(self):
     """
@@ -129,13 +134,14 @@ class Parser():
     :return: the first lexical element of the current command if it's an arithmetic/logical command. otherwise, return the second lexical element.
     :rtype: str
     """
-    if self.commandType() == self.cArithmetic: #check if command is arithmetic/logical command
+
+    if self.commandType() == self.cArithmetic: #check if command is arithmetic/logical
       return self.line[0] #return first lexical element
     return self.line[1] #return second lexical element
 
   def arg2(self):
     """
-    Return the third lexical element of the current command. (Note that only push/pop commands have three lexical elements and calling this method on an arithmetic/logical command generates an error).
+    Return the third lexical element of the current command. (Note that calling this method on an arithmetic/logical command generates an error).
 
     :return: the third lexical element of the current command
     :rtype: str

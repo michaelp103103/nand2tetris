@@ -104,7 +104,7 @@ A=A+1
 A=M
 M=D
 
-// label FibonacciSeries.MAIN_LOOP_START 
+// label MAIN_LOOP_START 
 (FibonacciSeries.MAIN_LOOP_START)
 
 // push argument 0 
@@ -118,18 +118,18 @@ M=M+1
 A=M-1
 M=D
 
-// if-goto FibonacciSeries.COMPUTE_ELEMENT 
+// if-goto COMPUTE_ELEMENT 
 @SP
 AM=M-1
 D=M
 @FibonacciSeries.COMPUTE_ELEMENT
 D;JNE
 
-// goto FibonacciSeries.END_PROGRAM 
+// goto END_PROGRAM 
 @FibonacciSeries.END_PROGRAM
 0;JMP
 
-// label FibonacciSeries.COMPUTE_ELEMENT 
+// label COMPUTE_ELEMENT 
 (FibonacciSeries.COMPUTE_ELEMENT)
 
 // push that 0 
@@ -247,9 +247,9 @@ A=A+1
 A=M
 M=D
 
-// goto FibonacciSeries.MAIN_LOOP_START 
+// goto MAIN_LOOP_START 
 @FibonacciSeries.MAIN_LOOP_START
 0;JMP
 
-// label FibonacciSeries.END_PROGRAM 
+// label END_PROGRAM 
 (FibonacciSeries.END_PROGRAM)

@@ -1,12 +1,47 @@
+"""
+Author: Michael Piskozub
+Date Created: 7/20/2021
+
+The CodeWriter module of the VM translator built for project 8 
+of the Nand to Tetris MOOC by The Hebrew University of Jerusalem.
+
+The CodeWriter module from project 7 was extended to add
+additional functionality. The following additional routines were 
+implemented for the CodeWriter module:
+
+  setFileName: Informs the CodeWriter that the translation of a new
+               VM file has started (called by the main program of
+               the VM translator).
+
+  writeInit: Writes the assembly instructions that effect the
+             bootstrap code that initializes the VM. This code must
+             be placed at the beginning of the generated *.asm file.
+
+  writeLabel: Writes assembly code that effects the 'label' command.
+
+  writeGoto: Writes assembly code that effects the 'goto' command.
+
+  writeIf: Writes assembly code that effects the 'if-goto' command.
+
+  writeFunction: Writes assembly code that effects the 'function'
+                 command.
+
+  writeCall: Writes assembly code that effects the 'call' command.
+
+  writeReturn: Writes assembly code the effects the 'return' command.
+
+See nand2tetris.org/project08 for the project description.
+"""
+
 class CodeWriter():
 
-  labelCnt = 0
+  labelCnt = 0 #running count appended to labels to make them unique
 
-  funcToCnt = {"empty": 0}
+  funcToCnt = {"empty": 0} #maps function to # of calls in function
 
-  currFunc = ""
+  currFunc = "" #current function
 
-  arithToAssembly = {
+  arithToAssembly = { #maps arithmetic/logical commands to hack assembly
     "add": ''.join([
       "@SP\n",
       "AM=M-1\n",
@@ -109,7 +144,7 @@ class CodeWriter():
     ])
   }
 
-  pshPopToAssemb = {
+  pshPopToAssemb = { #maps push/pop commands to hack assembly
     "push": {
       "constant": lambda self, index :
         ''.join([
@@ -302,7 +337,7 @@ class CodeWriter():
     }
   }
 
-  branchToAssembly = {
+  branchToAssembly = { #maps 'goto', 'if-goto', & 'label' commands to assembly
     "goto": lambda self, labelSym :
       ''.join([
         "@" + labelSym + "\n",
@@ -324,7 +359,7 @@ class CodeWriter():
       ])
   }
 
-  funcToAssembly = {
+  funcToAssembly = { #maps 'function', 'call', and 'return' commands to assembly
     "function": lambda self, funcSym, nVars, loopLabel, endLabel: 
       ''.join([
         "(" + funcSym + ")\n",
@@ -375,7 +410,7 @@ class CodeWriter():
         "M=M+1\n",
         "A=M-1\n",
         "M=D\n",
-        "@" + str(5 - int(nArgs)) + "\n", # ARG = SP-5-nArgs
+        "@" + str(5 + int(nArgs)) + "\n", # ARG = SP-5-nArgs
         "D=A\n",
         "@SP\n",
         "D=M-D\n",
@@ -436,32 +471,61 @@ class CodeWriter():
       ])
   }
 
-  initCode = ''.join([
+  initSP = ''.join([
     "@256\n", #set SP=256
     "D=A\n",
     "@SP\n",
-    "M=D\n",
-    "@Sys.init\n", # go to Sys.init
-    "0;JMP\n"
+    "M=D\n"
   ])
 
+  callSysInit = funcToAssembly["call"](None, #assembly code to call Sys.init
+                                       funcSym = "Sys.init",
+                                       nArgs = "0",
+                                       returnLabel = "Sys.init$ret.0")
+
+  initCode = initSP + callSysInit #boostrap code
+
   def __init__(self, outpath):
+    """Takes output filepath and returns the CodeWriter object that writes to that output file.
+    
+    :param str outpath: path to output file
+    :return: CodeWriter object that writes to the output file
+    :rtype: CodeWriter
+    """
+
     self.file = open(outpath, "w")
     self.filePrefix = "" #input filename prefix
 
-  #generate bootstrap code in asm file
   def writeInit(self):
+    """
+    Write the bootstrap code to the output .asm file. The bootstrap
+    code should be written to address 0 in ROM.
+
+    :return: No return value
+    """
+
     firstLine = "\n//boostrap code\n" #comment to indicate this is boostrap code
 
     translated = firstLine + self.initCode
 
     self.file.write(translated) #write to output file
 
-  #sets name of file being translated
-  def setFileName(self, path):
-    self.filePrefix = path.split("/")[-1][:-3]
+  def setFileName(self, filePref):
+    """
+    Save the name of the file currently being translated.
+    
+    :return: No return value.
+    """
+    
+    self.filePrefix = filePref
 
   def writeArithmetic(self, command):
+    """Translates the input arithmetic/logical VM command to hack assembly code and writes the hack assembly code to the output file.
+
+    :param str command: the command to be translated
+    :return: no return value
+    """
+
     #1st line is comment containing the command to be translated
     firstLine = "\n//" + command + "\n"
     translated = self.arithToAssembly[command]
@@ -475,9 +539,17 @@ class CodeWriter():
 
     translated = firstLine + translated
     
-    self.file.write(translated)
+    self.file.write(translated) #write the translated assembly code to output file
 
   def WritePushPop(self, command, segment, index):
+    """Translates the input push/pop VM command to hack assembly code and writes the hack assembly code to the output file.
+    
+    :param str command: the command to be translated
+    :param str segment: the memory segment to push from/pop to
+    :param str index: the index in the memory segment to push from/pop to
+    :return: no return value
+    """
+
     #1st line is comment containing the command to be translated
     firstLine = " ".join(["\n//", command, segment, index, "\n"])
 
@@ -485,47 +557,105 @@ class CodeWriter():
 
     self.file.write(translated)
 
-  #get proper label
   def __getLabelSym(self, label):
+    """
+    If no 'function' directive has been encountered yet prepend
+    "filePrefix." to label, where filePrefix is the name of the
+    current file being translated without the extension, and
+    return it.
+
+    Otherwise, prepend "currFunc$" to label, where currFunc is 
+    the current function being translated, and return it.
+    
+    Ex.
+
+    If label == 'myLabel' and the current function being translated
+    is 'myFunction', then this method would return: 
+    "myFunction$myLabel".
+
+    :param str label: The input label.
+    :return: The label updated as described above.
+    :rtype: str
+    """
+
     labelSym = ""
-    if self.currFunc == "":
+    if self.currFunc == "": #function directive NOT encountered
       labelSym = self.filePrefix + "." + label
-    else:
+    else: #function directive encountered
       labelSym = self.currFunc + "$" + label
 
     return labelSym
 
   def writeLabel(self, label):
+    """
+    Translate a VM code 'label' command to hack assembly code and
+    write it to the output file.
+
+    :param str label: The argument of the 'label' command
+    :return: No return value
+    """
+
+    #get appropriate symbol from label
     labelSym = self.__getLabelSym(label)
 
     #1st line is comment containing the command to be translated
     firstLine = " ".join(["\n//", "label", label, "\n"])
 
-    translated = firstLine + self.branchToAssembly["label"](self,labelSym)
+    translated = firstLine + self.branchToAssembly["label"](self,labelSym) #translate to assembly
 
     self.file.write(translated)
 
   def writeGoto(self, label):
+    """
+    Translate the VM code 'goto' command to hack assembly code and 
+    write it to the output file.
+    
+    :param str label: The argument of the 'goto' command.
+    :return: No return value.
+    """
+
+    #get appropriate symbol from label
     labelSym = self.__getLabelSym(label)
 
     #1st line is comment containing the command to be translated
     firstLine = " ".join(["\n//", "goto", label, "\n"])
 
-    translated = firstLine + self.branchToAssembly["goto"](self,labelSym)
+    translated = firstLine + self.branchToAssembly["goto"](self,labelSym) #translate to assembly
 
     self.file.write(translated)
 
   def writeIf(self, label):
+    """
+    Translate the VM code 'if-goto' command to hack assembly code
+    and write it to the output file.
+    
+    :param str label: The argument of the 'if-goto' command.
+    :return: No return value.
+    """
+
+    #get appropriate symbol from label
     labelSym = self.__getLabelSym(label)
 
     #1st line is comment containing the command to be translated
     firstLine = " ".join(["\n//", "if-goto", label, "\n"])
 
+    #translate to assembly
     translated = firstLine + self.branchToAssembly["if-goto"](self,labelSym)
 
     self.file.write(translated)
 
   def writeFunction(self, functionName, numVars):
+    """
+    Translate the VM code 'function' command to hack assembly code
+    and write it to the output file.
+    
+    :param str functionName: First argument of the 'function' command
+                             (the name of the function).
+    :param str numVars: Second argument of the 'function' command
+                        (number of local variables for the function)
+    :return: No return value.
+    """
+
     #1st line is comment containing the command to be translated
     firstLine = " ".join(["\n//", "function", functionName, numVars, "\n"])
 
@@ -537,6 +667,7 @@ class CodeWriter():
     #function label in assembly code
     funcSym = functionName
 
+    #translate to assembly
     translated = firstLine + self.funcToAssembly["function"](self, funcSym, numVars, loopLabel, endLabel)
 
     self.file.write(translated)
@@ -544,35 +675,59 @@ class CodeWriter():
     self.currFunc = funcSym
 
   def writeCall(self, functionName, numArgs):
+    """
+    Translate the VM code 'call' command to hack assembly code
+    and write it to the output file.
+    
+    :param str functionName: First argument of 'call' command
+                             (function being called).
+    :param str numArgs: Second argument of 'call' command
+                        (number of arguments to the function)
+    :return: No return value.
+    """
+
     #1st line is comment containing the command to be translated
     firstLine = " ".join(["\n//", "call", functionName, numArgs, "\n"])
 
     #return address
     returnLabel = ""
 
+    #'function' directive NOT yet encountered
     if self.currFunc == "":
       returnLabel = self.filePrefix + "$ret." + str(self.funcToCnt["empty"])
       self.funcToCnt["empty"] += 1
 
+    #'function' directive has been encountered
     else:
       i = 0
       currFunc = self.currFunc
 
+      #first 'call' directive encountered in current function
       if currFunc not in self.funcToCnt:
         i = 0
         self.funcToCnt[currFunc] = i + 1
+      #NOT first 'call' directive encountered in current function
       else:
         i = self.funcToCnt[currFunc]
         self.funcToCnt[currFunc] += 1
 
+      #currFunc$ret.i -- currFunc = the current function; i = current number of calls within currFunc
       returnLabel = currFunc + "$ret." + str(i)
     
     funcSym = functionName
+    #translate to assembly
     translated = firstLine + self.funcToAssembly["call"](self, funcSym, numArgs, returnLabel)
 
     self.file.write(translated)
 
   def writeReturn(self):
+    """
+    Translate the VM code 'return' command to hack assembly code
+    and write it to the output file.
+    
+    :return: No return value.
+    """
+
     #1st line is comment containing the command to be translated
     firstLine = "\n// return\n"
 
@@ -582,6 +737,11 @@ class CodeWriter():
     #write translated assembly code to file
     self.file.write(translated)
 
-  #closes output file
   def Close(self):
+    """
+    Close the output file.
+    
+    :return: No return value.
+    """
+
     self.file.close()
